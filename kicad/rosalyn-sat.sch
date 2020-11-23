@@ -5,7 +5,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "RosalynSAT"
-Date "2020-11-17"
+Date "2020-11-23"
 Rev "v1.0"
 Comp "www.2-0.dk"
 Comment1 ""
@@ -636,7 +636,7 @@ L power:PWR_FLAG #FLG0103
 U 1 1 5FB42719
 P 3350 5400
 F 0 "#FLG0103" H 3350 5475 50  0001 C CNN
-F 1 "PWR_FLAG" H 3350 5550 50  0000 C CNN
+F 1 "PWR_FLAG" V 3350 5700 50  0000 C CNN
 F 2 "" H 3350 5400 50  0001 C CNN
 F 3 "~" H 3350 5400 50  0001 C CNN
 	1    3350 5400
