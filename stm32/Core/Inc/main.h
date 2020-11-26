@@ -58,20 +58,24 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define E22_DIO1_Pin GPIO_PIN_0
-#define E22_DIO1_GPIO_Port GPIOF
-#define E22_BUSY_Pin GPIO_PIN_1
-#define E22_BUSY_GPIO_Port GPIOF
-#define E22_NRST_Pin GPIO_PIN_0
-#define E22_NRST_GPIO_Port GPIOA
-#define E22_DIO2_Pin GPIO_PIN_1
-#define E22_DIO2_GPIO_Port GPIOA
-#define E22_TXEN_Pin GPIO_PIN_2
-#define E22_TXEN_GPIO_Port GPIOA
-#define E22_RXEN_Pin GPIO_PIN_3
-#define E22_RXEN_GPIO_Port GPIOA
-#define E22_NSS_Pin GPIO_PIN_1
-#define E22_NSS_GPIO_Port GPIOB
+#define RADIO_DIO1_Pin GPIO_PIN_0
+#define RADIO_DIO1_GPIO_Port GPIOF
+#define RADIO_BUSY_Pin GPIO_PIN_1
+#define RADIO_BUSY_GPIO_Port GPIOF
+#define RADIO_NRST_Pin GPIO_PIN_0
+#define RADIO_NRST_GPIO_Port GPIOA
+#define RADIO_DIO2_Pin GPIO_PIN_1
+#define RADIO_DIO2_GPIO_Port GPIOA
+#define RADIO_TXEN_Pin GPIO_PIN_2
+#define RADIO_TXEN_GPIO_Port GPIOA
+#define RADIO_RXEN_Pin GPIO_PIN_3
+#define RADIO_RXEN_GPIO_Port GPIOA
+#define RADIO_NSS_Pin GPIO_PIN_1
+#define RADIO_NSS_GPIO_Port GPIOB
+#define HMI_ERROR_Pin GPIO_PIN_13
+#define HMI_ERROR_GPIO_Port GPIOA
+#define HMI_STATUS_Pin GPIO_PIN_14
+#define HMI_STATUS_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

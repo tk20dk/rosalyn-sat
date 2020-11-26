@@ -93,7 +93,8 @@ int main(void)
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  extern void RosalynSatSetup( void );
+  RosalynSatSetup();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -103,6 +104,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    extern void RosalynSatLoop( void );
+    RosalynSatLoop();
   }
   /* USER CODE END 3 */
 }
@@ -125,7 +128,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL12;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL6;
   RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV1;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -241,29 +244,35 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, E22_NRST_Pin|E22_TXEN_Pin|E22_RXEN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, RADIO_NRST_Pin|RADIO_TXEN_Pin|RADIO_RXEN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(E22_NSS_GPIO_Port, E22_NSS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(RADIO_NSS_GPIO_Port, RADIO_NSS_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : E22_DIO1_Pin E22_BUSY_Pin */
-  GPIO_InitStruct.Pin = E22_DIO1_Pin|E22_BUSY_Pin;
+  /*Configure GPIO pin : RADIO_DIO1_Pin */
+  GPIO_InitStruct.Pin = RADIO_DIO1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+  HAL_GPIO_Init(RADIO_DIO1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : E22_NRST_Pin E22_TXEN_Pin E22_RXEN_Pin */
-  GPIO_InitStruct.Pin = E22_NRST_Pin|E22_TXEN_Pin|E22_RXEN_Pin;
+  /*Configure GPIO pin : RADIO_BUSY_Pin */
+  GPIO_InitStruct.Pin = RADIO_BUSY_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(RADIO_BUSY_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : RADIO_NRST_Pin RADIO_TXEN_Pin RADIO_RXEN_Pin */
+  GPIO_InitStruct.Pin = RADIO_NRST_Pin|RADIO_TXEN_Pin|RADIO_RXEN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : E22_DIO2_Pin */
-  GPIO_InitStruct.Pin = E22_DIO2_Pin;
+  /*Configure GPIO pin : RADIO_DIO2_Pin */
+  GPIO_InitStruct.Pin = RADIO_DIO2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(E22_DIO2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(RADIO_DIO2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PA4 */
   GPIO_InitStruct.Pin = GPIO_PIN_4;
@@ -271,12 +280,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : E22_NSS_Pin */
-  GPIO_InitStruct.Pin = E22_NSS_Pin;
+  /*Configure GPIO pin : RADIO_NSS_Pin */
+  GPIO_InitStruct.Pin = RADIO_NSS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(E22_NSS_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(RADIO_NSS_GPIO_Port, &GPIO_InitStruct);
 
 }
 
@@ -292,7 +301,10 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+  __disable_irq();
+  while (1)
+  {
+  }
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -308,7 +320,7 @@ void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
-     tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

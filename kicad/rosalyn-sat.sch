@@ -36,15 +36,15 @@ F 3 "~" H 7900 5350 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Text GLabel 8050 3100 2    50   Input ~ 0
-e22_rxen
+radio_rxen
 Text GLabel 8050 3300 2    50   BiDi ~ 0
-e22_dio1
+radio_dio1
 Text GLabel 8050 3500 2    50   Output ~ 0
-e22_busy
+radio_busy
 Text GLabel 8050 3600 2    50   Input ~ 0
-e22_nrst
+radio_nrst
 Text GLabel 6650 3100 0    50   Input ~ 0
-e22_nss
+radio_nss
 Text GLabel 6650 3200 0    50   Input ~ 0
 spi_sck
 Text GLabel 6650 3300 0    50   Output ~ 0
@@ -436,17 +436,6 @@ F 3 "" H 5550 1450 50  0001 C CNN
 $EndComp
 Text GLabel 5550 1150 1    50   UnSpc ~ 0
 nrst
-$Comp
-L MCU_ST_STM32F0:STM32F030F4Px U1
-U 1 1 5FB02EA0
-P 4000 3450
-F 0 "U1" H 4250 4200 50  0000 C CNN
-F 1 "STM32F030F4Px" H 4500 4100 50  0000 C CNN
-F 2 "Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm" H 3600 2750 50  0001 R CNN
-F 3 "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/DM00088500.pdf" H 4000 3450 50  0001 C CNN
-	1    4000 3450
-	1    0    0    -1  
-$EndComp
 Text GLabel 4500 3750 2    50   Output ~ 0
 uart1_tx
 Text GLabel 4500 3850 2    50   Input ~ 0
@@ -461,33 +450,24 @@ Text GLabel 5050 4150 2    50   Output ~ 0
 hmi_status
 Text GLabel 5050 3850 2    50   Output ~ 0
 hmi_error
-Text GLabel 3500 4050 0    50   Output ~ 0
-e22_nss
+Text GLabel 3200 4050 0    50   Output ~ 0
+radio_nss
 Text GLabel 4500 2950 2    50   Output ~ 0
-e22_nrst
-Text GLabel 3500 2950 0    50   UnSpc ~ 0
+radio_nrst
+Text GLabel 3200 2950 0    50   UnSpc ~ 0
 nrst
 $Comp
 L power:+3.3V #PWR09
 U 1 1 5FB2A297
-P 4050 2700
-F 0 "#PWR09" H 4050 2550 50  0001 C CNN
-F 1 "+3.3V" H 3950 2850 50  0000 L CNN
-F 2 "" H 4050 2700 50  0001 C CNN
-F 3 "" H 4050 2700 50  0001 C CNN
-	1    4050 2700
+P 3750 2700
+F 0 "#PWR09" H 3750 2550 50  0001 C CNN
+F 1 "+3.3V" H 3650 2850 50  0000 L CNN
+F 2 "" H 3750 2700 50  0001 C CNN
+F 3 "" H 3750 2700 50  0001 C CNN
+	1    3750 2700
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	4100 2750 4100 2700
-Wire Wire Line
-	4100 2700 4050 2700
-Wire Wire Line
-	4000 2750 4000 2700
-Wire Wire Line
-	4000 2700 4050 2700
-Connection ~ 4050 2700
-Text GLabel 3500 3150 0    50   Input ~ 0
+Text GLabel 3200 3150 0    50   Input ~ 0
 boot0
 Text GLabel 6000 1150 1    50   Input ~ 0
 boot0
@@ -513,12 +493,12 @@ swdio
 $Comp
 L power:GND #PWR012
 U 1 1 5FB65C99
-P 4000 4250
-F 0 "#PWR012" H 4000 4000 50  0001 C CNN
-F 1 "GND" H 4000 4100 50  0000 C CNN
-F 2 "" H 4000 4250 50  0001 C CNN
-F 3 "" H 4000 4250 50  0001 C CNN
-	1    4000 4250
+P 3700 4250
+F 0 "#PWR012" H 3700 4000 50  0001 C CNN
+F 1 "GND" H 3700 4100 50  0000 C CNN
+F 2 "" H 3700 4250 50  0001 C CNN
+F 3 "" H 3700 4250 50  0001 C CNN
+	1    3700 4250
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -606,20 +586,20 @@ F 3 "~" H 6250 5600 50  0001 C CNN
 	1    6050 5600
 	0    1    1    0   
 $EndComp
-Text GLabel 3500 3850 0    50   Input ~ 0
-e22_busy
-Text GLabel 3500 3750 0    50   BiDi ~ 0
-e22_dio1
+Text GLabel 3200 3850 0    50   Input ~ 0
+radio_busy
+Text GLabel 3200 3750 0    50   BiDi ~ 0
+radio_dio1
 Text GLabel 4500 3250 2    50   Output ~ 0
-e22_rxen
+radio_rxen
 Text GLabel 8050 3200 2    50   Input ~ 0
-e22_txen
+radio_txen
 Text GLabel 8050 3400 2    50   BiDi ~ 0
-e22_dio2
+radio_dio2
 Text GLabel 4500 3050 2    50   BiDi ~ 0
-e22_dio2
+radio_dio2
 Text GLabel 4500 3150 2    50   Output ~ 0
-e22_txen
+radio_txen
 $Comp
 L Device:Ferrite_Bead FB1
 U 1 1 5FC0B9DD
@@ -640,6 +620,26 @@ F 1 "PWR_FLAG" V 3350 5700 50  0000 C CNN
 F 2 "" H 3350 5400 50  0001 C CNN
 F 3 "~" H 3350 5400 50  0001 C CNN
 	1    3350 5400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3700 2750 3700 2700
+Wire Wire Line
+	3800 2700 3800 2750
+Wire Wire Line
+	3700 2700 3750 2700
+Connection ~ 3750 2700
+Wire Wire Line
+	3750 2700 3800 2700
+$Comp
+L MCU_ST_STM32F0:STM32F070F6Px U1
+U 1 1 5FC13811
+P 3900 3450
+F 0 "U1" H 4100 2650 50  0000 C CNN
+F 1 "STM32F070F6Px" H 4150 2550 50  0000 C CNN
+F 2 "Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm" H 3300 2750 50  0001 R CNN
+F 3 "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/DM00141386.pdf" H 3900 3450 50  0001 C CNN
+	1    3900 3450
 	1    0    0    -1  
 $EndComp
 $EndSCHEMATC
