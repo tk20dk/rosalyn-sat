@@ -1,11 +1,7 @@
 #ifndef NVDATA_H__
 #define NVDATA_H__
 
-#ifdef STM32F303xC
-  #include "stm32f3xx_hal.h"
-#elif defined ( STM32F070x6 ) || defined( STM32F072xB )
-  #include "stm32f0xx_hal.h"
-#endif
+#include "main.h"
 #include "config.h"
 
 
@@ -21,8 +17,9 @@ public:
   void Update();
 
 private:
-  static void Program( uint32_t const Address, uint32_t const NbBytes, void const* const Data );
-  static void PageErase( uint32_t const PageAddress, uint32_t const NbPages = 1 );
+  static void FlashUnlock();
+  static void FlashProgram( uint32_t const Address, uint32_t const NbBytes, void const* const Data );
+  static void FlashPageErase( uint32_t const PageAddress, uint32_t const NbPages = 1 );
 };
 
 #endif // NVDATA_H__
