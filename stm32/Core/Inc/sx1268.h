@@ -2,6 +2,7 @@
 #define SX1268_H__
 
 #include <functional>
+#include "main.h"
 #include "spi.h"
 #include "system.h"
 #include "sx1268-def.h"
@@ -18,8 +19,6 @@ union RadioStatus_t
     uint8_t CpuBusy   : 1;  // Flag for CPU radio busy
   } Fields;
 };
-
-#define GetDeviceType() SX1268
 
 enum class TRadioSpreadingFactors : uint8_t
 {
@@ -71,6 +70,7 @@ class TSx1268
 
 public:
   TSx1268(
+    TSpi &Spi,
     uint32_t const BaseFreq,
     GPIO_TypeDef *const PortNSS,
     uint32_t const PinNSS,
@@ -95,9 +95,12 @@ public:
   void SetRfChannel( uint32_t const RfChannel );
   void SetModulation( Modulation_t const &Modulation );
 
+  void SetStandby( RadioStandbyModes_t const StandbyConfig );
+  void WaitOnBusy();
+
 private:
   void Reset();
-  void SetStandby( RadioStandbyModes_t const StandbyConfig );
+  void SetFallbackMode( uint8_t const Mode );
   void SetPacketType( RadioPacketTypes_t const PacketType );
   void SetRfFrequency( uint32_t const Frequency );
   void CalibrateImage( uint32_t const Frequency );
@@ -124,7 +127,6 @@ private:
   RadioError_t GetDeviceErrors();
   RadioStatus_t GetStatus();
 
-  void WaitOnBusy();
   void WriteCommand( RadioCommands_t const Command, uint8_t const *const Buffer, uint32_t const Length );
   void ReadCommand( RadioCommands_t const Command, uint8_t *const Buffer, uint32_t const Length );
   void WriteRegister( uint32_t const Address, uint8_t const *const Buffer, uint32_t const Length );
@@ -135,10 +137,10 @@ private:
   void ReadBuffer( uint8_t const Offset, void *const Buffer, uint16_t const Length );
 
 private:
+  TSpi &Spi;
   bool ImageCalibrated;
   uint32_t const BaseFreq;
   uint32_t FrequencyError;
-  RadioOperatingModes_t OperatingMode;
   PacketParams_t PacketParams;
   GPIO_TypeDef *const PortNSS;
   uint32_t const PinNSS;

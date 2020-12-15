@@ -1,7 +1,8 @@
-#include "main.h"
 #include "sx1268.h"
 
+
 TSx1268::TSx1268(
+  TSpi &Spi,
   uint32_t const BaseFreq,
   GPIO_TypeDef *const PortNSS,
   uint32_t const PinNSS,
@@ -14,10 +15,10 @@ TSx1268::TSx1268(
   GPIO_TypeDef *const PortTXEN,
   uint32_t const PinTXEN,
   TCallback const Callback ) :
+  Spi( Spi ),
   ImageCalibrated( false ),
   BaseFreq( BaseFreq ),
   FrequencyError( 0 ),
-  OperatingMode( MODE_SLEEP ),
   PacketParams(),
   PortNSS( PortNSS ),
   PinNSS( PinNSS ),
@@ -40,7 +41,7 @@ bool TSx1268::Setup( Modulation_t const &Modulation, int32_t const TxPower, uint
   SetRegulatorMode( USE_DCDC );
   SetDio3AsTcxoCtrl( TCXO_CTRL_1_8V, 500 );
 
-  RadioStatus_t Status = GetStatus();
+  RadioStatus_t Status =  GetStatus();
   RadioError_t Errors = GetDeviceErrors();
   if(( Errors.Value != 0x2000 ) || ( Status.Fields.CpuBusy != 0 ) ||
      ( Status.Fields.ChipMode != 2 ) || ( Status.Fields.CmdStatus != 1 ))
@@ -52,7 +53,7 @@ bool TSx1268::Setup( Modulation_t const &Modulation, int32_t const TxPower, uint
   calibParam.Value = 0x7F;
   Calibrate( calibParam );
 
-  Status = GetStatus();
+  Status =  GetStatus();
   Errors = GetDeviceErrors();
   if(( Errors.Value != 0x2000 ) || ( Status.Fields.CpuBusy != 0 ) ||
      ( Status.Fields.ChipMode != 2 ) || ( Status.Fields.CmdStatus != 1 ))
@@ -79,9 +80,10 @@ bool TSx1268::Setup( Modulation_t const &Modulation, int32_t const TxPower, uint
     }
   }
 
-  SetStandby( STDBY_RC );
   ClearIrqStatus( IRQ_RADIO_ALL );
   ClearDeviceErrors();
+
+  SetFallbackMode( 0x30 ); // STDBY_XOSC
 
   SetPacketType( PACKET_TYPE_LORA );
   SetModulationParams( ModulationParams );
@@ -96,6 +98,7 @@ void TSx1268::SetTxPower( int32_t const TxPower )
 {
   SetTxParams( TxPower, RADIO_RAMP_200_US );
 }
+
 void TSx1268::SetModulation( Modulation_t const &Modulation )
 {
   ModulationParams_t ModulationParams;
@@ -150,19 +153,16 @@ void TSx1268::Receive()
 void TSx1268::SetStandby( RadioStandbyModes_t const standbyConfig )
 {
   WriteCommand( RADIO_SET_STANDBY, ( uint8_t* )&standbyConfig, 1 );
-  if( standbyConfig == STDBY_RC )
-  {
-    OperatingMode = MODE_STDBY_RC;
-  }
-  else
-  {
-    OperatingMode = MODE_STDBY_XOSC;
-  }
 }
 
 void TSx1268::SetPacketType( RadioPacketTypes_t packetType )
 {
   WriteCommand( RADIO_SET_PACKETTYPE, ( uint8_t* )&packetType, 1 );
+}
+
+void TSx1268::SetFallbackMode( uint8_t const Mode )
+{
+  WriteCommand( RADIO_SET_TXFALLBACKMODE, &Mode, 1 );
 }
 
 void TSx1268::SetRfFrequency( uint32_t const Frequency )
@@ -323,10 +323,8 @@ void TSx1268::SetDioIrqParams( uint16_t irqMask, uint16_t dio1Mask, uint16_t dio
 
 void TSx1268::SetRx( uint32_t const Timeout )
 {
-  OperatingMode = MODE_RX;
-
-  SetPin( PortRXEN, PinRXEN );
   ResetPin( PortTXEN, PinTXEN );
+  SetPin( PortRXEN, PinRXEN );
 
   uint8_t buf[3];
   buf[0] = ( uint8_t )( ( Timeout >> 16 ) & 0xFF );
@@ -337,7 +335,8 @@ void TSx1268::SetRx( uint32_t const Timeout )
 
 void TSx1268::SetRxBoosted( uint32_t const Timeout )
 {
-  WriteReg( REG_RX_GAIN, 0x96 ); // max LNA gain, increase current by ~2mA for around ~3dB in sensitivity
+  // max LNA gain, increase current by ~2mA for around ~3dB in sensitivity
+  WriteReg( REG_RX_GAIN, 0x96 );
   SetRx( Timeout );
 }
 
@@ -352,39 +351,16 @@ void TSx1268::SetTxParams( int8_t const Power_, RadioRampTimes_t const RampTime 
 {
   auto Power = Power_;
 
-  if( GetDeviceType() == SX1261 )
+  SetPaConfig( 0x04, 0x07, 0x00, 0x01 );
+  if( Power > 22 )
   {
-    if( Power == 15 )
-    {
-      SetPaConfig( 0x06, 0x00, 0x01, 0x01 );
-    }
-    else
-    {
-      SetPaConfig( 0x04, 0x00, 0x01, 0x01 );
-    }
-    if( Power >= 14 )
-    {
-      Power = 14;
-    }
-    else if( Power < -3 )
-    {
-      Power = -3;
-    }
-    WriteReg( REG_OCP, 0x18 ); // current max is 80 mA for the whole device
+    Power = 22;
   }
-  else // sx1262 or sx1268
+  else if( Power < -3 )
   {
-    SetPaConfig( 0x04, 0x07, 0x00, 0x01 );
-    if( Power > 22 )
-    {
-      Power = 22;
-    }
-    else if( Power < -3 )
-    {
-      Power = -3;
-    }
-    WriteReg( REG_OCP, 0x38 ); // current max 160mA for the whole device
+    Power = -3;
   }
+  WriteReg( REG_OCP, 0x38 ); // current max 160mA for the whole device
 
   uint8_t buf[2];
   buf[0] = Power;
@@ -469,15 +445,13 @@ void TSx1268::Transmit( void const *const Buffer, uint16_t const Length )
   }
 
   WriteBuffer( 0x00, Buffer, Length );
-  SetTx( 0xFFFFFF );
+  SetTx( 0xffffff );
 }
 
 void TSx1268::SetTx( uint32_t const Timeout )
 {
-  OperatingMode = MODE_TX;
-
-  SetPin( PortTXEN, PinTXEN );
   ResetPin( PortRXEN, PinRXEN );
+  SetPin( PortTXEN, PinTXEN );
 
   uint8_t buf[3];
   buf[0] = (uint8_t)( ( Timeout >> 16 ) & 0xFF );
@@ -492,12 +466,10 @@ void TSx1268::WriteCommand( RadioCommands_t const Command, uint8_t const *const 
 
   ResetPin( PortNSS, PinNSS );
   Spi.Write( ( uint8_t )Command );
-  for( auto i = 0U; i < Length; i++ )
-  {
-    Spi.Write( Buffer[i] );
-  }
+  Spi.Write( Buffer, Length );
   SetPin( PortNSS, PinNSS );
 
+  // Wait for BUSY pin to set
   for( auto counter = 0; counter < 15; counter++ )
   {
     __NOP();
@@ -511,10 +483,7 @@ void TSx1268::ReadCommand( RadioCommands_t const Command, uint8_t *const Buffer,
   ResetPin( PortNSS, PinNSS );
   Spi.Write( (uint8_t)Command );
   Spi.Write( 0 );
-  for( auto i = 0U; i < Length; i++ )
-  {
-    Buffer[i] = Spi.WriteRead( 0 );
-  }
+  Spi.Read( Buffer, Length );
   SetPin( PortNSS, PinNSS );
 }
 
@@ -526,10 +495,7 @@ void TSx1268::WriteRegister( uint32_t const Address, uint8_t const *const Buffer
   Spi.Write( RADIO_WRITE_REGISTER );
   Spi.Write( ( Address & 0xFF00 ) >> 8 );
   Spi.Write( Address & 0x00FF );
-  for( auto i = 0U; i < Length; i++ )
-  {
-    Spi.Write( Buffer[i] );
-  }
+  Spi.Write( Buffer, Length );
   SetPin( PortNSS, PinNSS );
 }
 
@@ -547,10 +513,7 @@ void TSx1268::ReadRegister( uint32_t const Address, uint8_t *const Buffer, uint3
   Spi.Write( ( Address & 0xFF00 ) >> 8 );
   Spi.Write( Address & 0x00FF );
   Spi.Write( 0 );
-  for( auto i = 0U; i < Length; i++ )
-  {
-    Buffer[i] = Spi.WriteRead( 0 );
-  }
+  Spi.Read( Buffer, Length );
   SetPin( PortNSS, PinNSS );
 }
 

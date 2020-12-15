@@ -7,10 +7,6 @@
 #define FREQ_STEP                                   0.95367431640625 // ( ( double )( XTAL_FREQ / ( double )FREQ_DIV ) )
 #define FREQ_ERR                                    0.47683715820312
 
-#define SX1261  0
-#define SX1262  1
-#define SX1268  2
-
 #define MATCHING_FREQ_915                           0
 #define MATCHING_FREQ_780                           1
 #define MATCHING_FREQ_490                           2
@@ -52,18 +48,6 @@ enum RadioStates_t
   RF_RX_RUNNING,  // The radio is in reception state
   RF_TX_RUNNING,  // The radio is in transmission state
   RF_CAD,         // The radio is doing channel activity detection
-};
-
-enum RadioOperatingModes_t
-{
-  MODE_SLEEP = 0x00, // The radio is in sleep mode
-  MODE_STDBY_RC,     // The radio is in standby mode with RC oscillator
-  MODE_STDBY_XOSC,   // The radio is in standby mode with XOSC oscillator
-  MODE_FS,           // The radio is in frequency synthesis mode
-  MODE_TX,           // The radio is in transmit mode
-  MODE_RX,           // The radio is in receive mode
-  MODE_RX_DC,        // The radio is in receive duty cycle mode
-  MODE_CAD           // The radio is in channel activity detection mode
 };
 
 enum RadioStandbyModes_t

@@ -185,9 +185,11 @@ struct TSbusData
   uint16_t Ch16 = 0;
 };
 
+class TRosalynRx;
 class TRosalynSat;
 class TSbusSerial
 {
+  friend TRosalynRx;
   friend TRosalynSat;
 
   static uint32_t const SbusSOF       = 0x0f;

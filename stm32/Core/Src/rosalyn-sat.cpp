@@ -1,7 +1,6 @@
 #include "rosalyn-sat.h"
 
 
-TDriverSpi Spi;
 TRosalynSat RosalynSat;
 
 uint32_t volatile TickSys;
@@ -12,12 +11,10 @@ extern "C" uint32_t HAL_GetTick()
 
 void TRosalynSat::Setup()
 {
-//  AesCrypto.TestCFB();
-
   // Enable SysTick IRQ
   SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
 
-  Spi.Setup();
+  RadioSpi.Setup();
   SbusSerial.Setup();
 
   if( Radio.Setup( NvData.Modulation[ 2 ], NvData.TxPower, NvData.Channel ))
@@ -48,13 +45,12 @@ void TRosalynSat::Loop()
   {
     SerialFlag = false;
     SbusDataUpstream = SbusSerial.Receive();
-    HmiError( 5 );
   }
 }
 
 void TRosalynSat::RadioEvent( TRadioEvent const Event )
 {
-  uint8_t Buffer[ 256 ];
+  uint8_t Buffer[ 64 ];
 
   if( Event == TRadioEvent::RxDone )
   {
@@ -76,7 +72,7 @@ void TRosalynSat::RadioEvent( TRadioEvent const Event )
       auto const SbusFrameTx = SbusData.Encode();
       AesCrypto.EncryptCFB( SbusFrameTx.Buffer, LenRx, Buffer, LenOut );
 
-      Radio.Transmit( Buffer, LenRx );
+      Radio.Transmit( Buffer, LenOut );
     }
     else
     {
@@ -86,13 +82,13 @@ void TRosalynSat::RadioEvent( TRadioEvent const Event )
 
   if( Event == TRadioEvent::TxDone )
   {
-    HmiStatus( 10 );
     Radio.Receive();
   }
 
   if( Event == TRadioEvent::Timeout )
   {
     HmiError( 1000 );
+    Radio.Receive();
   }
 
   if( Event == TRadioEvent::CrcError )
@@ -101,9 +97,8 @@ void TRosalynSat::RadioEvent( TRadioEvent const Event )
     auto const Rssi = Radio.GetRssi();
     auto const LenRx = Radio.ReadPacket( Buffer, sizeof( Buffer ));
 
-    HmiError( 1000 );
     UartPrintf( "Rssi:%4d Snr:%3d.%u Len:%u CRC Error\n", Rssi, Snr / 10, abs(Snr) % 10, LenRx );
-
+    HmiError( 1000 );
     Radio.Receive();
   }
 
@@ -113,9 +108,8 @@ void TRosalynSat::RadioEvent( TRadioEvent const Event )
     auto const Rssi = Radio.GetRssi();
     auto const LenRx = Radio.ReadPacket( Buffer, sizeof( Buffer ));
 
-    HmiError( 1000 );
     UartPrintf( "Rssi:%4d Snr:%3d.%u Len:%u No CRC\n", Rssi, Snr / 10, abs(Snr) % 10, LenRx );
-
+    HmiError( 1000 );
     Radio.Receive();
   }
 }
@@ -172,7 +166,9 @@ TRosalynSat::TRosalynSat() :
   TimerFlag( false ),
   RadioFlag( false ),
   SerialFlag( false ),
+  RadioSpi( SPI1 ),
   Radio(
+    RadioSpi,
     433050000u,
 	RADIO_NSS_GPIO_Port,
 	RADIO_NSS_Pin,
